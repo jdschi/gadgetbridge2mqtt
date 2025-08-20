@@ -16,6 +16,7 @@ services:
       - MQTT_PASSWORD=zzz
       - GADGETBRIDGE_DB_PATH=/data/Gadgetbridge.db
       - PYTHONUNBUFFERED=1
+      - CHECK_INTERVAL_SECONDS=30  # How often to check if database has been updated
 # Only one watch per container
       - MAC_ADDRESS=AA:BB:CC:DD:EE:11
       - WATCH_TYPE=PINETIME
