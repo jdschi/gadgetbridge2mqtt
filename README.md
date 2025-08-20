@@ -10,7 +10,7 @@ Home Assistant Broadcasting Intents: https://companion.home-assistant.io/docs/no
 Much of the python code for docker container taken from: https://github.com/Progaros/GadgetbridgeMqtt/blob/main/main.py#L292
 although this code was itself (apparently) taken from an occasionally missing repo: https://git.olli.info/Oliver/GadgetbridgeMqtt.git
 
-##What it does:
+## What it does:
 This docker container reads data from Gadgetbridge.db and publishes it to MQTT. The database is AutoExported from the GadgetBridge app on
 android. The database must be available to the container for reading. It might be moved there as part of some automated backup on your
 phone or using adb. The software can be triggered to publish to MQTT either by publishing a command {publish} on the
@@ -19,11 +19,11 @@ assistant, but presumably works with any other software that uses MQTT. However,
 Mosquitto broker. It has also been tested only with a few devices: Colmi R02 ring, Amazfit Bip S, Moyoung watch (specifically a Colmi V72),
 and a PineTime watch running Infinitime. Other devices are certainly possible, but will require someone with that device to code it.
 
-##Why I am sharing:
+## Why I am sharing:
 This works for me and you might find it helpful. I am not offering support, but may give some help if you are courteous and respectful of
 others.
 
-##How to get it working:
+## How to get it working:
 
 I have tested only on linux. It assume that you have docker compose working on your computer, and an MQTT broker already
 set up and working.
