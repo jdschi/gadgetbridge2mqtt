@@ -67,7 +67,6 @@ class GadgetbridgeMQTTPublisher:
         self.setup_logging()
         self.db_path = os.getenv("GADGETBRIDGE_DB_PATH", "/data/Gadgetbridge.db")
         self.check_interval = int(os.getenv("CHECK_INTERVAL_SECONDS", "30"))
-#        print('Check interval:',self.check_interval)
         self.load_config()
         self.mqtt_client = None
         self._db_mtime = None   # <- baseline mtime shared by tasks
@@ -787,7 +786,6 @@ class GadgetbridgeMQTTPublisher:
                 self._db_mtime = None
 
             await asyncio.sleep(self.check_interval)  # set in compose file
-#            await asyncio.sleep(30)
 
     async def _mqtt_listener(self):
         """Listen for MQTT commands."""
