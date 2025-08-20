@@ -87,7 +87,7 @@ Notifications must be working on your phone. Unfortunately, that can be very pho
 
 ## Copy database to server:
   I use syncthing to automate moving the database above to my server, so that I have a backup, and then I use this backup to
-  feed my sensors to HA. There are other ways to do that. You could probably even leave it on your phone and read it using adb. Nextcloud might work?
+  feed my sensors to HA. There are other ways to do that. You might even leave it on your phone and read it using `adb`? Nextcloud might work? I don't know.
   What you do with the database is up to you.
 
 ## Home Assistant Automation:
@@ -102,8 +102,8 @@ Notifications must be working on your phone. Unfortunately, that can be very pho
 
   Two additional actions are disabled, because it is not necessary to tell the program to publish the sensors, but are left here as an example.
 
-  Unfortunately, a couple of the steps in the automation use the device, which makes the yaml code incomprehensible, since it uses meaningless ID numbers
-  instead of device names. So you need to replace these, or easier, just delete the condition in yaml and add it in the UI. You must also add the MAC
+  Unfortunately, a couple of the steps in the automation use the device, which makes that part of the yaml code incomprehensible, since it uses meaningless ID numbers
+  instead of device names. So you need to replace these, or easier, just delete the condition in yaml and re-add it in the UI. You must also add the MAC
   address for the watch that you want to sync. You also need to replace `sensor.your_phone_last_update_trigger` and `notify.mobile_app_your_phone` with 
   your phone's sensor and notification.
 
