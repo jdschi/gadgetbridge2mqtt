@@ -1,7 +1,7 @@
 # gadgetbridge2mqtt
 Docker container written in python to publish data stored in a Gadgetbridge database to MQTT. Also shared are a sample docker compose file, and a sample home assistant automation.  The automation uses broadcast intents to use the home assistant companion app to coordinate data transfer.
 
-##Background Documentation:
+## Background Documentation:
 
 Gadgetbridge Intents: https://gadgetbridge.org/internals/automations/intents/#intents
 
@@ -60,15 +60,11 @@ the database, proper settings are necessary in both Gadgebridge and the Home Ass
       Open "Developer Settings". Two buttons need to be enabled for the HA automation to work: "Allow 3rd party apps to change settings"
       and "Allow GATT interaction through BLE Intent API"
 
-## Settings in Home Assistant:
+## Settings in Home Assistant companion app:
 
-   ### Notifications must be working on your phone. Unfortunately, that can be very phone specific, and change with updates. Many users
-      rely unknowingly on using Google Services, which seems to be a default fallback for other problems. My phone has no Google Services,
-      so I go to side panel Settings -> Companion App -> Services & devices, and click on the Home phone name, which is the only
-      entry from my single server.  There I set Persistent Connection to "On home network only". Others use "Never". However, if you are using the minimal
-      version of the app, then "Never" will not work. I cannot help you with this.
+   ### Notifications must be working on your phone. Unfortunately, that can be very phone specific, and change with updates. Many users rely unknowingly on using Google Services, which seems to be a default fallback for other problems. My phone has no Google Services, so I go to side panel Settings -> Companion App -> Services & devices, and click on the Home phone name, which is the only entry from my single server.  There I set Persistent Connection to "On home network only". Others use "Never". However, if you are using the minimal version of the app, then "Never" will not work. I cannot help you with this.
 
-      Notifications are how HA talks to Gadgetbridge through the companion app.
+   Notifications are how HA talks to Gadgetbridge through the companion app.
 
     ### side panel Settings -> Companion app -> Sensors: Manage sensors. Scroll down to "Last update sensor" and click on it. At the bottom of this menu
       there is a greyed out "Add new intent" button. Be sure to read the useful text above it. If you click on the radio button, it will immediately
