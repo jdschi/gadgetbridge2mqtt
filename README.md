@@ -74,16 +74,22 @@ the database, proper settings are necessary in both Gadgebridge and the Home Ass
 
    This allows for HA to listen if Gadgetbridge has successfully fetched data from your device, and then successfully exported it to the database.
 
-## Copy database to server: I use syncthing to automate moving the database above to my server, so that I have a backup, and then I use this backup to
+## Copy database to server:
+  I use syncthing to automate moving the database above to my server, so that I have a backup, and then I use this backup to
   feed my sensors to HA. There are other ways to do that. You could probably even leave it on your phone and read it using adb. Nextcloud might work?
   What you do with the database is up to you.
 
-## Automation:
-  I have written an automation script (automation.yaml) that checks if my phone is on the network, then
+## Home Assistant Automation:
+  I have shared an automation script `sample_automation.yaml` that checks if my phone is on the network, then
   (1) tells the phone to connect GB to the devices,
-  (2) tells GB to fetch data from the devices, (3) wait for that to be performed successfully, (4) tells GB to export the db to the phone storage,
-  (5) waits for confirmation that it succeded, and then sends a notification that it has completed, including how long it took. This last step is
+  (2) tells GB to fetch data from the devices,
+  (3) wait for that to be performed successfully,
+  (4) tells GB to export the db to the phone storage,
+  (5) waits for confirmation that it succeded, and then tells the program to publish the sensors to MQTT.
+  (6) sends a notification that it has completed, including how long it took. This last step is
   useful in debugging.
+
+  Step 5 is not necessary, since the code will automatically publish the updated data, but I leave it here as an example.
 
   Unfortunately, a couple of the steps in the automation use the device, which makes the yaml code incomprehensible, since it uses meaningless ID numbers
   instead of device names. So you need to replace these, or easier, just delete the condition in yaml and add it in the UI. You must also add the MAC
