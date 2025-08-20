@@ -3,11 +3,9 @@ Docker container written in python to publish data stored in a Gadgetbridge data
 
 ## Background Documentation:
 
-Gadgetbridge Intents: https://gadgetbridge.org/internals/automations/intents/#intents
-
-Home Assistant Broadcasting Intents: https://companion.home-assistant.io/docs/notifications/notification-commands/#broadcast-intent
-
-Much of the python code for docker container taken from: https://github.com/Progaros/GadgetbridgeMqtt/blob/main/main.py#L292
+- Gadgetbridge Intents: https://gadgetbridge.org/internals/automations/intents/#intents
+- Home Assistant Broadcasting Intents: https://companion.home-assistant.io/docs/notifications/notification-commands/#broadcast-intent
+- Much of the python code for docker container taken from: https://github.com/Progaros/GadgetbridgeMqtt/blob/main/main.py#L292
 although this code was itself (apparently) taken from an occasionally missing repo: https://git.olli.info/Oliver/GadgetbridgeMqtt.git
 
 ## What it does:
@@ -52,19 +50,19 @@ the database, proper settings are necessary in both Gadgebridge and the Home Ass
 ## What to do in Gadgetbridge app:
  ### Settings (General, not device specific)
 
-  #### About you
+  - **About you**
   For all the bookkeeping to work, you need to input your name and date of birth.
   Distance measurement will be more accurate if you estimate step length and include height (presumably).
 
-  #### Automations
-1. Choose an **Export location**.
-   If your phone is not rooted, you may have to create a new directory.
-   Take note of it. Mine is something like /storage/emulated/0/Android/Android shared/Gadgetbridge.db
-2. Turn on **Auto fetch activity data** for some maximum time to wait for downloading.
-   Maybe 3 hours? The automation will coordinate all the data transfers when the phone is available to HA and the server.
-3. Set **Minimum time between fetches** to 0 minutes.
+  - **Automations**
+    1. Choose an **Export location**.
+       If your phone is not rooted, you may have to create a new directory.
+       Take note of it. Mine is something like /storage/emulated/0/Android/Android shared/Gadgetbridge.db
+    2. Turn on **Auto fetch activity data** for some maximum time to wait for downloading.
+       Maybe 3 hours? The automation will coordinate all the data transfers when the phone is available to HA and the server.
+    3. Set **Minimum time between fetches** to 0 minutes.
 
-  #### Developer Options
+  - **Developer Options**
   (necessary for HA automations to automatically fetch data)
   All the buttons below **Intent API** except **Allow Debug Commands** need to be enabled for the automation to work.
 
