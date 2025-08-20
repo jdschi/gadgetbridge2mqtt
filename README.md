@@ -62,17 +62,17 @@ the database, proper settings are necessary in both Gadgebridge and the Home Ass
 
 ## Settings in Home Assistant companion app:
 
-   ### Notifications must be working on your phone. Unfortunately, that can be very phone specific, and change with updates. Many users rely unknowingly on using Google Services, which seems to be a default fallback for other problems. My phone has no Google Services, so I go to side panel Settings -> Companion App -> Services & devices, and click on the Home phone name, which is the only entry from my single server.  There I set Persistent Connection to "On home network only". Others use "Never". However, if you are using the minimal version of the app, then "Never" will not work. I cannot help you with this.
+   Notifications must be working on your phone. Unfortunately, that can be very phone specific, and change with updates. Many users rely unknowingly on using Google Services, which seems to be a default fallback for other problems. My phone has no Google Services, so I go to side panel Settings -> Companion App -> Services & devices, and click on the Home phone name, which is the only entry from my single server.  There I set Persistent Connection to "On home network only". Others use "Never". However, if you are using the minimal version of the app, then "Never" will not work. I cannot help you with this.
 
    Notifications are how HA talks to Gadgetbridge through the companion app.
 
-    ### side panel Settings -> Companion app -> Sensors: Manage sensors. Scroll down to "Last update sensor" and click on it. At the bottom of this menu
+   side panel Settings -> Companion app -> Sensors: Manage sensors. Scroll down to "Last update sensor" and click on it. At the bottom of this menu
       there is a greyed out "Add new intent" button. Be sure to read the useful text above it. If you click on the radio button, it will immediately
       return to grey and create a new intent, with some default intent. Click on that new Intent to edit it, and replace the text with
       "nodomain.freeyourgadget.gadgetbridge.action.ACTIVITY_SYNC_FINISH". While here, create another intent with the text
       "nodomain.freeyourgadget.gadgetbridge.action.DATABASE_EXPORT_SUCCESS". In order to work, the companion app will need to be restarted.
 
-      This allows for HA to listen if Gadgetbridge has successfully fetched data from your device, and then successfully exported it to the database.
+   This allows for HA to listen if Gadgetbridge has successfully fetched data from your device, and then successfully exported it to the database.
 
 ## Copy database to server: I use syncthing to automate moving the database above to my server, so that I have a backup, and then I use this backup to
   feed my sensors to HA. There are other ways to do that. You could probably even leave it on your phone and read it using adb. Nextcloud might work?
