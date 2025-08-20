@@ -4,12 +4,13 @@ Gadgetbridge MQTT Step Counter Integration
 Extracts sensor data from Gadgetbridge SQLite database and publishes to Home Assistant via MQTT
 Home Assistant is not necessary, of course, since anything that utilize the MQTT broker should work,
 but this has not been tested.
-On startup, data are published. Thereafter, publication is triggered by publishing the payload "publish"
-to the topic "gadgetbridge/command"
+On startup, data are published. Thereafter, publication is triggered either by publishing the payload "publish"
+to the topic "gadgetbridge/command", or whenever the database is updated.
 The docker compose file requires as input the MQTT location, port and credentials.
 It also requires two volumes: /data where the Gadgetbridge.db file is stored, and
 /code_dir where the python code is stored, which includes this main.py file, healthcheck,py, and
 various watch_type.py files for specific gadgets.
+Finally, WATCH_TYPE and MAC_ADDRESS of the watch are also required.
 """
 
 import os
@@ -18,7 +19,6 @@ import json
 import logging
 import time
 from datetime import datetime, timedelta, timezone
-#from zoneinfo import ZoneInfo  # Python 3.9+
 from typing import Dict, Any
 import asyncio
 import aiomqtt
@@ -66,6 +66,8 @@ class GadgetbridgeMQTTPublisher:
     def __init__(self):
         self.setup_logging()
         self.db_path = os.getenv("GADGETBRIDGE_DB_PATH", "/data/Gadgetbridge.db")
+        self.check_interval = int(os.getenv("CHECK_INTERVAL_SECONDS", "30"))
+#        print('Check interval:',self.check_interval)
         self.load_config()
         self.mqtt_client = None
         self._db_mtime = None   # <- baseline mtime shared by tasks
@@ -784,7 +786,8 @@ class GadgetbridgeMQTTPublisher:
                     self.logger.warning(f"DB file missing: {self.db_path}")
                 self._db_mtime = None
 
-            await asyncio.sleep(2)  # adjust as you like
+            await asyncio.sleep(self.check_interval)  # set in compose file
+#            await asyncio.sleep(30)
 
     async def _mqtt_listener(self):
         """Listen for MQTT commands."""
@@ -802,7 +805,7 @@ class GadgetbridgeMQTTPublisher:
             await self.publish_sensor_data(sensor_data)
             self.logger.info("Published initial sensor data")
 
-            # VERY IMPORTANT: set baseline AFTER the initial publish
+            # Set baseline AFTER the initial publish
             await self._set_mtime_baseline()
 
             # Subscribe and iterate correctly (no parentheses)

@@ -33,55 +33,44 @@ You also need to supply the MAC address for your particular watch, and the watch
 available, as seen by examining the python folder. For example, the presence of the `moyoung.py` file tells you that at least
 one Moyoung type watch is supported, and that you should set `- WATCH_TYPE=moyoung` in the compose file. Finally, you need to tell
 the software where these python files are stored, and where your `Gadgetbridge.db` file is stored. That might be sufficient
-to get everything running.
-
-## Docker container:
-  Sensors are published to HA through MQTT.  Updating is triggered by a "status" payload published on the topic "gadgetbridge/command"
-  Shared is a `docker-compose.yaml` file that will spin up a
-  docker container that takes the data from the Gadgetbridge database, and publishes it to MQTT so
-  that Home Assistant will automatically discover it. It needs to know where to find the database
-  that you have stored above. It also needs to know the details of your MQTT broker, the type of
-  watch that you have (so how GB stores data in the database), and the MAC address of your device.
-  If you have more than one device, you need to spin up a docker container for each one.
-
+to get everything running. You can also change the interval time between checking for updates to the database (with the docker
+compose file environment `CHECK_INTERVAL_SECONDS`).
 
 If you want more functionality so that Home Assistant can instruct your phone to fetch data from your device and export it to
 the database, proper settings are necessary in both Gadgebridge and the Home Assistant companion app. Details are below.
 
+
+
 ## What to do in Gadgetbridge app:
- ### Settings (General, not device specific)
- 
-  #### About you
-  For all the bookkeeping to work, you need to input your name and date of birth.
-  Distance measurement will be more accurate if you estimate step length and include height (presumably).
+    ### Settings (General, not device specific)
+        #### Automations
+          ##### Choose an "Export location". If your phone is not rooted, you may have to create a new directory.
+              Take note of it. Mine is something like /storage/emulated/0/Android/Android shared/Gadgetbridge.db
+          ##### Turn on "Auto fetch activity data" for some maximum time to wait for downloading, maybe 3 hours? The
+              automation will coordinate all the data transfers when the phone is available to HA and the server.
+          ##### Set minimum time between fetches to 0 minutes.
 
-  #### Automations
-1. Choose an **Export location**.
-   If your phone is not rooted, you may have to create a new directory.
-   Take note of it. Mine is something like /storage/emulated/0/Android/Android shared/Gadgetbridge.db
-2. Turn on **Auto fetch activity data** for some maximum time to wait for downloading.
-   Maybe 3 hours? The automation will coordinate all the data transfers when the phone is available to HA and the server.
-3. Set **Minimum time between fetches** to 0 minutes.
-   
-  #### Developer Options 
-  (necessary for HA automations to automatically fetch data)
-  All the buttons below **Intent API** except **Allow Debug Commands** need to be enabled for the automation to work.
+        #### Developer Options (necessary for HA automations to automatically fetch data)
+          All the buttons below "Intent API" except "Allow Debug Commands" need to be enabled for the automation to work.
 
-### Device specific settings (gear icon in the watch)
-Open **Developer Settings**. Two buttons need to be enabled for the HA automation to work: **Allow 3rd party apps to change settings**
-and **Allow GATT interaction through BLE Intent API**
+        #### For all the bookkeeping to work, you need to input your birthday and name in Gadgetbridge under Settings -> About you.
+          Distance measurement will be more accurate if you estimate step length and include height (presumably).
+
+    ### Device specific settings (gear icon in the watch):
+      Open "Developer Settings". Two buttons need to be enabled for the HA automation to work: "Allow 3rd party apps to change settings"
+      and "Allow GATT interaction through BLE Intent API"
 
 ## Settings in Home Assistant companion app:
+
    Notifications must be working on your phone. Unfortunately, that can be very phone specific, and change with updates. Many users rely unknowingly on using Google Services, which seems to be a default fallback for other problems. My phone has no Google Services, so I go to side panel Settings -> Companion App -> Services & devices, and click on the Home phone name, which is the only entry from my single server.  There I set Persistent Connection to "On home network only". Others use "Never". However, if you are using the minimal version of the app, then "Never" will not work. I cannot help you with this.
 
    Notifications are how HA talks to Gadgetbridge through the companion app.
 
-   ### (side panel) Settings -> Companion app -> Sensors-> Manage sensors. 
-  Scroll down to **Last update sensor** and click on it. At the bottom of this menu
-  there is a greyed out **Add new intent** button. Be sure to read the useful text above it. If you click on the radio button, it will immediately
-  return to grey and create a new intent, with some default intent. Click on that new Intent to edit it, and replace the text with
-  `nodomain.freeyourgadget.gadgetbridge.action.ACTIVITY_SYNC_FINISH`. While here, create another intent with the text
-  `nodomain.freeyourgadget.gadgetbridge.action.DATABASE_EXPORT_SUCCESS`. In order to work, the companion app will need to be restarted.
+   side panel Settings -> Companion app -> Sensors: Manage sensors. Scroll down to "Last update sensor" and click on it. At the bottom of this menu
+      there is a greyed out "Add new intent" button. Be sure to read the useful text above it. If you click on the radio button, it will immediately
+      return to grey and create a new intent, with some default intent. Click on that new Intent to edit it, and replace the text with
+      "nodomain.freeyourgadget.gadgetbridge.action.ACTIVITY_SYNC_FINISH". While here, create another intent with the text
+      "nodomain.freeyourgadget.gadgetbridge.action.DATABASE_EXPORT_SUCCESS". In order to work, the companion app will need to be restarted.
 
    This allows for HA to listen if Gadgetbridge has successfully fetched data from your device, and then successfully exported it to the database.
 
@@ -92,18 +81,29 @@ and **Allow GATT interaction through BLE Intent API**
 
 ## Home Assistant Automation:
   I have shared an automation script `sample_automation.yaml` that checks if my phone is on the network, then
-  1. tells the phone to connect GB to the devices,
-  2. tells GB to fetch data from the devices,
-  3. wait for that to be performed successfully,
-  4. tells GB to export the db to the phone storage,
-  5. waits for confirmation that it succeded, and then tells the program to publish the sensors to MQTT.
-  6. sends a notification that it has completed, including how long it took. This last step is
+  (1) tells the phone to connect GB to the devices,
+  (2) tells GB to fetch data from the devices,
+  (3) wait for that to be performed successfully,
+  (4) tells GB to export the db to the phone storage,
+  (5) waits for confirmation that it succeded, and then tells the program to publish the sensors to MQTT.
+  (6) sends a notification that it has completed, including how long it took. This last step is
   useful in debugging.
 
-  Two additional actions are disabled, because it is not necessary to tell the program to publish the sensors, but are left here as an example.
+  Step 5 is not necessary, since the code will automatically publish the updated data, but I leave it here as an example.
 
   Unfortunately, a couple of the steps in the automation use the device, which makes the yaml code incomprehensible, since it uses meaningless ID numbers
   instead of device names. So you need to replace these, or easier, just delete the condition in yaml and add it in the UI. You must also add the MAC
-  address for the watch that you want to sync. You also need to replace `sensor.your_phone_last_update_trigger` and `notify.mobile_app_your_phone` with 
-  your phone's sensor and notification.
+  address for the watch that you want to sync. Replace "ma:ca:dd:re:ss" with something like "AB:CD:12:34:56". You also need to replace
+  `sensor.your_phone_last_update_trigger` and `notify.mobile_app_your_phone` with your phone's sensor and notification.
+
+
+## Docker container:
+  Sensors are published to HA through MQTT.  Updating is triggered by a "status" payload published on the topic "gadgetbridge/command"
+  Shared is a docker-compose.yaml file that will spin up a
+  docker container that takes the data from the Gadgetbridge database, and published it to MQTT so
+  that Home Assistant will automatically discover it. It needs to know where to find the database
+  that you have stored above. It also needs to know the details of your MQTT broker, the type of
+  watch that you have (so how GB stores data in the database), and the MAC address of your device.
+  If you have more than one device, you need to spin up a docker container for each one.
+
 
