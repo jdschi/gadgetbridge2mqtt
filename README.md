@@ -78,7 +78,9 @@ the database, proper settings are necessary in both Gadgebridge and the Home Ass
   feed my sensors to HA. There are other ways to do that. You could probably even leave it on your phone and read it using adb. Nextcloud might work?
   What you do with the database is up to you.
 
-## Automation: I have written an automation script (automation.yaml) that checks if my phone is on the network, then (1) tells the phone to connect GB to the devices,
+## Automation:
+  I have written an automation script (automation.yaml) that checks if my phone is on the network, then
+  (1) tells the phone to connect GB to the devices,
   (2) tells GB to fetch data from the devices, (3) wait for that to be performed successfully, (4) tells GB to export the db to the phone storage,
   (5) waits for confirmation that it succeded, and then sends a notification that it has completed, including how long it took. This last step is
   useful in debugging.
