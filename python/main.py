@@ -68,6 +68,8 @@ class GadgetbridgeMQTTPublisher:
         self.db_path = os.getenv("GADGETBRIDGE_DB_PATH", "/data/Gadgetbridge.db")
         self.load_config()
         self.mqtt_client = None
+        self._db_mtime = None   # <- baseline mtime shared by tasks
+
 # WATCH_TYPE must be given in the environment of the docker compose file.
 # It is used to find the device_id and name of the device, and the available data.
 # The alias would be better for user control, but doesn't seem reliable in GB (Settings-> three dots -> Alias)
@@ -737,56 +739,91 @@ class GadgetbridgeMQTTPublisher:
 
 # --------------------------- Main Program -------------------------------
 
-    async def run(self):
-        """Main execution method (async, command-driven via MQTT)"""
-        self.logger.info("Starting Gadgetbridge MQTT Publisher (command mode)")
+    async def handle_command(self, topic, payload):
+        """Handle incoming MQTT commands"""
         try:
-            async with aiomqtt.Client(
-                hostname=self.mqtt_config["broker"],
-                port=self.mqtt_config["port"],
-                username=self.mqtt_config["username"] or None,
-                password=self.mqtt_config["password"] or None,
-            ) as client:
-                self.mqtt_client = client
-
-                # Initialize HA entities
-                await self.setup_home_assistant_entities()
-
-                # Optional: publish once at startup
-                sensor_data = self.get_sensor_data()
-                command_topic = "gadgetbridge/command"
-                await self.publish_sensor_data(sensor_data)
-                self.logger.info(f"Published initial sensor data, waiting for payloads publish or ping on {command_topic}...")
-
-                # Subscribe to command topic
-                await client.subscribe(command_topic)
-
-                #  Listen for incoming messages correctly
-                async for message in client.messages:
-                    payload = message.payload.decode().strip().lower()
-                    self.logger.info(f"Received command on {message.topic}: {payload}")
-
-                    try:
-                        if payload in ("status", "publish", "go"):
-                            sensor_data = self.get_sensor_data()
-                            await self.publish_sensor_data(sensor_data)
-                            self.logger.info("Published sensor data in response to command")
-
-                        elif payload == "ping":
-                            await client.publish("gadgetbridge/reply", "pong")
-                            self.logger.info("Replied with pong")
-
-                        else:
-                            self.logger.warning(f"Unknown command: {payload}")
-
-                    except Exception as e:
-                        self.logger.error(f"Error handling command {payload}: {e}")
-
+            if payload == "ping":
+                await self.mqtt_client.publish("gadgetbridge/response", "pong")
+                self.logger.info("Replied to ping with pong")
+            else:
+                self.logger.warning(f"Unknown command: {payload}")
         except Exception as e:
-            self.logger.error(f"Failed to connect to MQTT broker: {e}")
+            self.logger.error(f"Error handling command {payload}: {e}")
 
+    async def run(self):
+        """Run MQTT listener and file watcher concurrently."""
+        await asyncio.gather(self._mqtt_listener(), self._watch_file_changes())
 
+    async def _set_mtime_baseline(self):
+        """Record current mtime without publishing (baseline)."""
+        try:
+            self._db_mtime = os.path.getmtime(self.db_path)
+        except FileNotFoundError:
+            self._db_mtime = None
 
+    async def _watch_file_changes(self):
+        """Poll DB mtime and publish only when it changes."""
+        # If we start before MQTT connects, at least set a baseline
+        await self._set_mtime_baseline()
+
+        while True:
+            try:
+                mtime = os.path.getmtime(self.db_path)
+                if self._db_mtime is None:
+                    # File appeared for the first time; set baseline only
+                    self._db_mtime = mtime
+                elif mtime != self._db_mtime:
+                    # File changed -> publish and update baseline
+                    self._db_mtime = mtime
+                    sensor_data = self.get_sensor_data()
+                    await self.publish_sensor_data(sensor_data)
+                    self.logger.info("Published data due to DB update")
+            except FileNotFoundError:
+                # File missing; clear baseline so we’ll baseline again when it reappears
+                if self._db_mtime is not None:
+                    self.logger.warning(f"DB file missing: {self.db_path}")
+                self._db_mtime = None
+
+            await asyncio.sleep(2)  # adjust as you like
+
+    async def _mqtt_listener(self):
+        """Listen for MQTT commands."""
+        async with aiomqtt.Client(
+            hostname=self.mqtt_config["broker"],
+            port=self.mqtt_config["port"],
+            username=self.mqtt_config["username"] or None,
+            password=self.mqtt_config["password"] or None,
+        ) as client:
+            self.mqtt_client = client
+
+            # Set up entities and do a one-time publish on startup
+            await self.setup_home_assistant_entities()
+            sensor_data = self.get_sensor_data()
+            await self.publish_sensor_data(sensor_data)
+            self.logger.info("Published initial sensor data")
+
+            # VERY IMPORTANT: set baseline AFTER the initial publish
+            await self._set_mtime_baseline()
+
+            # Subscribe and iterate correctly (no parentheses)
+            await client.subscribe("gadgetbridge/command")
+            async for message in client.messages:
+                payload = message.payload.decode().strip().lower()
+                self.logger.info(f"Received command on {message.topic}: {payload}")
+
+                if payload in ("status", "publish", "go"):
+                    # Manual trigger: publish regardless of mtime, then refresh baseline
+                    sensor_data = self.get_sensor_data()
+                    await self.publish_sensor_data(sensor_data)
+                    try:
+                        self._db_mtime = os.path.getmtime(self.db_path)
+                    except FileNotFoundError:
+                        self._db_mtime = None
+                    self.logger.info("Published sensor data (command)")
+                elif payload == "ping":
+                    await client.publish("gadgetbridge/reply", "pong")
+                else:
+                    self.logger.warning(f"Unknown command: {payload}")
 # --- Main Entry Point ---
 if __name__ == "__main__":
     publisher = GadgetbridgeMQTTPublisher()
