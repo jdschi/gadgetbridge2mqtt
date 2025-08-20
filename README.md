@@ -1,14 +1,41 @@
 # gadgetbridge2mqtt
 Docker container written in python to publish data stored in a Gadgetbridge database to MQTT. Also shared are a sample docker compose file, and a sample home assistant automation.  The automation uses broadcast intents to use the home assistant companion app to coordinate data transfer.
 
-To do: It would be better to have the python code monitor for file changes on the database to execute the update.
-
-
-Documentation:
+Background Documentation:
 Gadgetbridge Intents: https://gadgetbridge.org/internals/automations/intents/#intents
 Home Assistant Broadcasting Intents: https://companion.home-assistant.io/docs/notifications/notification-commands/#broadcast-intent
 Much of the python code for docker container taken from: https://github.com/Progaros/GadgetbridgeMqtt/blob/main/main.py#L292
 although this code was itself (apparently) taken from an occasionally missing repo: https://git.olli.info/Oliver/GadgetbridgeMqtt.git
+
+What it does:
+This docker container reads data from Gadgetbridge.db and publishes it to MQTT. The database is AutoExported from the GadgetBridge app on
+android. The database must be available to the container for reading. It might be moved there as part of some automated backup on your
+phone or using adb. The software can be triggered to publish to MQTT either by publishing a command {publish} on the
+topic /gadgetbridge/command, or will automatically publish when the database is updated. It publishes in a way for autodiscovery in home
+assistant, but presumably works with any other software that uses MQTT. However, I have tested it only with Home Assistant, and using a
+Mosquitto broker. It has also been tested only with a few devices: Colmi R02 ring, Amazfit Bip S, Moyoung watch (specifically a Colmi V72),
+and a PineTime watch running Infinitime. Other devices are certainly possible, but will require someone with that device to code it.
+
+Why I am sharing:
+This works for me and you might find it helpful. I am not offering support, but may give some help if you are courteous and respectful of
+others.
+
+How to get it working:
+
+I have tested only on linux. It assume that you have docker compose working on your computer, and an MQTT broker already
+set up and working.
+
+The bare minimum to make it work is to download the python files to some folder, and to copy the supplied `sample_compose.yaml` file
+to `compose.yaml`, and modify it for your details. Specifically, you need to supply the MQTT broker location, port and credentials.
+You also need to supply the MAC address for your particular watch, and the watch type. Currently only a few watch types are
+available, as seen by examining the python folder. For example, the presence of the `moyoung.py` file tells you that at least
+one Moyoung type watch is supported, and that you should set `- WATCH_TYPE=moyoung` in the compose file. Finally, you need to tell
+the software where these python files are stored, and where your `Gadgetbridge.db` file is stored. That might be sufficient
+to get everything running.
+
+If you want more functionality so that Home Assistant can instruct your phone to fetch data from your device and export it to
+the database, proper settings are necessary in both Gadgebridge and the Home Assistant companion app. Details are below.
+
 
 
 o What to do in Gadgetbridge app:
