@@ -1,0 +1,35 @@
+services:
+  gadgetbridge2mqtt:
+    image: python:3.11-slim
+    container_name: gadgetbridge2mqtt
+    restart: unless-stopped
+    network_mode: host
+    working_dir: /app
+    volumes:
+      - /path/where/gadgetbridge.db/is/stored:/data:ro            # where the up-to-date Gadgetbridge.db is stored
+      - /directory/containing/python:/code_dir:ro # where the python code is stored
+    environment:
+      - TZ=America/Chicago # Get from e.g. https://webbrowsertools.com/timezone/ -> Timezone info Table -> Timezone
+      - MQTT_BROKER=192.168.1.xx      # These four lines contain the details for your MQTT broker
+      - MQTT_PORT=1883
+      - MQTT_USERNAME=yyy
+      - MQTT_PASSWORD=zzz
+      - GADGETBRIDGE_DB_PATH=/data/Gadgetbridge.db
+      - PYTHONUNBUFFERED=1
+# Only one watch per container
+      - MAC_ADDRESS=AA:BB:CC:DD:EE:11
+      - WATCH_TYPE=PINETIME
+    command: >
+      sh -c "
+        apt-get update &&
+        cp /code_dir/*.py /app/ &&
+        pip install --upgrade pip &&
+        pip install pytz &&
+        pip install --no-cache-dir aiomqtt &&
+        python main.py
+      "
+    healthcheck:
+      test: ["CMD", "python", "healthcheck.py"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
