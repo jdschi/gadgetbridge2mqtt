@@ -1,35 +1,108 @@
-services:
-  gadgetbridge2mqtt:
-    image: python:3.11-slim
-    container_name: gadgetbridge2mqtt
-    restart: unless-stopped
-    network_mode: host
-    working_dir: /app
-    volumes:
-      - /path/where/gadgetbridge.db/is/stored:/data:ro            # where the up-to-date Gadgetbridge.db is stored
-      - /directory/containing/python:/code_dir:ro # where the python code is stored
-    environment:
-      - TZ=America/Chicago # Get from e.g. https://webbrowsertools.com/timezone/ -> Timezone info Table -> Timezone
-      - MQTT_BROKER=192.168.1.xx      # These four lines contain the details for your MQTT broker
-      - MQTT_PORT=1883
-      - MQTT_USERNAME=yyy
-      - MQTT_PASSWORD=zzz
-      - GADGETBRIDGE_DB_PATH=/data/Gadgetbridge.db
-      - PYTHONUNBUFFERED=1
-# Only one watch per container
-      - MAC_ADDRESS=AA:BB:CC:DD:EE:11
-      - WATCH_TYPE=PINETIME
-    command: >
-      sh -c "
-        apt-get update &&
-        cp /code_dir/*.py /app/ &&
-        pip install --upgrade pip &&
-        pip install pytz &&
-        pip install --no-cache-dir aiomqtt &&
-        python main.py
-      "
-    healthcheck:
-      test: ["CMD", "python", "healthcheck.py"]
-      interval: 1m
-      timeout: 10s
-      retries: 3
+alias: >-
+  Tell GadgetBridge to regularly fetch data from devices when the phone is at
+  home
+description: ""
+triggers:
+  - trigger: time_pattern
+    hours: "*"
+    id: schedule
+    minutes: /20
+  - device_id: yourphonedevice_id
+    domain: device_tracker
+    entity_id: yourphonezonehome_id
+    type: enters
+    trigger: device
+    zone: zone.home
+conditions: []
+actions:
+  - variables:
+      invoke_timestamp: "{{ as_timestamp(now()) }}"
+    alias: >-
+      Define variable invoke_timestamp to track how long parts of the code take.
+      Just for debugging.
+  - alias: Connect Watch to GadgetBridge
+    action: notify.mobile_app_your_phone
+    metadata: {}
+    data:
+      message: command_broadcast_intent
+      data:
+        intent_action: nodomain.freeyourgadget.gadgetbridge.BLUETOOTH_CONNECT
+        intent_package_name: nodomain.freeyourgadget.gadgetbridge
+        intent_extras: >-
+          EXTRA_DEVICE_ADDRESS:{{ "AA:BB:CC:DD:EE:11" | urlencode
+          }}:String.urlencoded
+    enabled: true
+  - alias: Tell GadgetBridge to fetch data from devices
+    action: notify.mobile_app_your_phone
+    metadata: {}
+    data:
+      message: command_broadcast_intent
+      data:
+        intent_action: nodomain.freeyourgadget.gadgetbridge.command.ACTIVITY_SYNC
+        intent_package_name: nodomain.freeyourgadget.gadgetbridge
+  - wait_for_trigger:
+      - trigger: state
+        entity_id:
+          - sensor.your_phone_last_update_trigger
+        to: nodomain.freeyourgadget.gadgetbridge.action.ACTIVITY_SYNC_FINISH
+    timeout:
+      hours: 0
+      minutes: 1
+      seconds: 0
+      milliseconds: 0
+    alias: Wait up to one minute for confirmation that fetch has completed.
+  - variables:
+      finish_fetch: "{{ as_timestamp(now()) }}"
+  - alias: Tell GadgetBridge to export database
+    action: notify.mobile_app_your_phone
+    metadata: {}
+    data:
+      message: command_broadcast_intent
+      data:
+        intent_action: nodomain.freeyourgadget.gadgetbridge.command.TRIGGER_EXPORT
+        intent_package_name: nodomain.freeyourgadget.gadgetbridge
+  - wait_for_trigger:
+      - trigger: state
+        entity_id:
+          - sensor.your_phone_last_update_trigger
+        to: nodomain.freeyourgadget.gadgetbridge.action.DATABASE_EXPORT_SUCCESS
+    timeout:
+      hours: 0
+      minutes: 1
+      seconds: 0
+      milliseconds: 0
+    alias: >-
+      Wait up to one minute for confirmation that the database has been exported
+      to the phone.
+  - variables:
+      finish_export: "{{ as_timestamp(now()) }}"
+  - alias: >-
+      Give syncthing a minute to update the new database to the server.
+      Otherwise make this an action that tells your code to copy the database
+      file to the server.
+    delay:
+      hours: 0
+      minutes: 1
+      seconds: 0
+      milliseconds: 0
+  - action: mqtt.publish
+    data:
+      evaluate_payload: false
+      qos: "0"
+      retain: false
+      topic: gadgetbridge/command
+      payload: publish
+    alias: Publish new sensor data to MQTT using container
+  - variables:
+      finish_timestamp: "{{ as_timestamp(now()) }}"
+  - alias: Notify the same phone for debugging purposes.
+    action: notify.mobile_app_your_phone
+    metadata: {}
+    data:
+      message: >
+        Fetching time: {{ (finish_fetch - invoke_timestamp) | round(1) }}
+        seconds
+
+        Exporting time: {{ (finish_export - finish_fetch) | round(1) }} seconds
+      title: Gadgetbridge sync and export notification
+mode: single
