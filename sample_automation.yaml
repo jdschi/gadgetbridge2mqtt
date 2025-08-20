@@ -85,6 +85,7 @@ actions:
       minutes: 1
       seconds: 0
       milliseconds: 0
+    enabled: false
   - action: mqtt.publish
     data:
       evaluate_payload: false
@@ -93,6 +94,7 @@ actions:
       topic: gadgetbridge/command
       payload: publish
     alias: Publish new sensor data to MQTT using container
+    enabled: false
   - variables:
       finish_timestamp: "{{ as_timestamp(now()) }}"
   - alias: Notify the same phone for debugging purposes.
