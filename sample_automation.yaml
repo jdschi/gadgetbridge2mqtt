@@ -20,7 +20,7 @@ actions:
     alias: >-
       Define variable invoke_timestamp to track how long parts of the code take.
       Just for debugging.
-  - alias: Connect Watch to GadgetBridge
+  - alias: Connect Watch to GadgetBridge (update with correct MAC address of watch)
     action: notify.mobile_app_your_phone
     metadata: {}
     data:
