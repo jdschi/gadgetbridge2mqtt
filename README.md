@@ -11,8 +11,8 @@ Much of the python code for docker container taken from: https://github.com/Prog
 although this code was itself (apparently) taken from an occasionally missing repo: https://git.olli.info/Oliver/GadgetbridgeMqtt.git
 
 ## What it does:
-This docker container reads data from Gadgetbridge.db and publishes it to MQTT. The database is AutoExported from the GadgetBridge app on
-android. The database must be available to the container for reading. The software can be triggered to publish to MQTT either by publishing a command `{publish}` on the
+The database can be AutoExported from the GadgetBridge app on android, and must be available to the container for reading. 
+The software can be triggered to publish to MQTT either by publishing a command `{publish}` on the
 topic `/gadgetbridge/command`, or will automatically publish when the database is updated. It publishes in a way for autodiscovery in home
 assistant, but presumably works with any other software that uses MQTT. However, I have tested it only with Home Assistant, and using a
 Mosquitto broker. It has also been tested only with a few devices: Colmi R02 ring, Amazfit Bip S, Moyoung watch (specifically a Colmi V72),
@@ -24,7 +24,7 @@ others.
 
 ## How to get it working:
 
-I have tested only on linux. It assume that you have docker compose working on your computer, and an MQTT broker already
+I have tested only on linux. The guide here assume that you have docker compose working on your computer, and an MQTT broker already
 set up and working.
 
 The bare minimum to make it work is to download the python files to some folder, and to copy the supplied `sample_compose.yaml` file
