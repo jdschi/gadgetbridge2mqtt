@@ -70,10 +70,6 @@ class GadgetbridgeMQTTPublisher:
         self.load_config()
         self.mqtt_client = None
         self._db_mtime = None   # <- baseline mtime shared by tasks
-
-# WATCH_TYPE must be given in the environment of the docker compose file.
-# It is used to find the device_id and name of the device, and the available data.
-# The alias would be better for user control, but doesn't seem reliable in GB (Settings-> three dots -> Alias)
         self.watch_type = os.getenv("WATCH_TYPE","error").lower()
         if self.watch_type == "error":
             print('No watch type specified in docker.')
@@ -261,7 +257,6 @@ class GadgetbridgeMQTTPublisher:
 
 # Defines the database table and column names appropriate for that device.
 # Also includes the sensors available.
-
         with open(f"{self.watch_type}.py") as watch:
             exec(watch.read())
 
@@ -269,10 +264,6 @@ class GadgetbridgeMQTTPublisher:
 
 # More sensors and hints are available here: https://gadgetbridge.org/internals/development/data-management/
 # However, it is probably necessary to examine the database for better information (e.g., through DBbrowser for SQLITE)
-
-
-
-
 
     # ---------------- INITIAL DB fetch (one-shot, tolerates missing DB) ----------------
     def get_device_alias_initial(self):
@@ -803,10 +794,10 @@ class GadgetbridgeMQTTPublisher:
             await self.publish_sensor_data(sensor_data)
             self.logger.info("Published initial sensor data")
 
-            # Set baseline AFTER the initial publish
+            # Set time baseline after the initial publish
             await self._set_mtime_baseline()
 
-            # Subscribe and iterate correctly (no parentheses)
+            # Subscribe and iterate correctly
             await client.subscribe("gadgetbridge/command")
             async for message in client.messages:
                 payload = message.payload.decode().strip().lower()
