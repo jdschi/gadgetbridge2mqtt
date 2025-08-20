@@ -72,7 +72,7 @@ Open **Developer Settings**. Two buttons need to be enabled for the HA automatio
 and **Allow GATT interaction through BLE Intent API**
 
 ## Settings in Home Assistant companion app:
-   Notifications must be working on your phone. Unfortunately, that can be very phone specific, and change with updates. Many users rely unknowingly on using Google Services, which seems to be a default fallback for other problems. My phone has no Google Services, so I go to side panel Settings -> Companion App -> Services & devices, and click on the Home phone name, which is the only entry from my single server.  There I set Persistent Connection to "On home network only". Others use "Never". However, if you are using the minimal version of the app, then "Never" will not work. I cannot help you with this.
+Notifications must be working on your phone. Unfortunately, that can be very phone specific, and change with updates. Many users rely unknowingly on using Google Services, which seems to be a default fallback for other problems. My phone has no Google Services, so I go to side panel **Settings -> Companion App -> Services & devices**, and click on the Home phone name, which is the only entry from my single server.  There I set **Persistent Connection** to "On home network only". Others use "Never". However, if you are using the minimal version of the app, then "Never" will probably not work. I cannot help you with this.
 
    Notifications are how HA talks to Gadgetbridge through the companion app.
 
