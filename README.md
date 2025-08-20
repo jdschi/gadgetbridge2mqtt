@@ -98,7 +98,8 @@ Notifications must be working on your phone. Unfortunately, that can be very pho
   4. tells GB to export the db to the phone storage,
   5. waits for confirmation that it succeded, and then tells the program to publish the sensors to MQTT.
   6. sends a notification that it has completed, including how long it took. This last step is
-  useful in debugging.
+  useful in debugging. In my setup, each step takes only a couple of seconds. It if takes the whole minute,
+there might be something wrong.
 
   Two additional actions are disabled, because it is not necessary to tell the program to publish the sensors, but are left here as an example.
 
