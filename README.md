@@ -12,9 +12,8 @@ although this code was itself (apparently) taken from an occasionally missing re
 
 ## What it does:
 This docker container reads data from Gadgetbridge.db and publishes it to MQTT. The database is AutoExported from the GadgetBridge app on
-android. The database must be available to the container for reading. It might be moved there as part of some automated backup on your
-phone or using adb. The software can be triggered to publish to MQTT either by publishing a command {publish} on the
-topic /gadgetbridge/command, or will automatically publish when the database is updated. It publishes in a way for autodiscovery in home
+android. The database must be available to the container for reading. The software can be triggered to publish to MQTT either by publishing a command `{publish}` on the
+topic `/gadgetbridge/command`, or will automatically publish when the database is updated. It publishes in a way for autodiscovery in home
 assistant, but presumably works with any other software that uses MQTT. However, I have tested it only with Home Assistant, and using a
 Mosquitto broker. It has also been tested only with a few devices: Colmi R02 ring, Amazfit Bip S, Moyoung watch (specifically a Colmi V72),
 and a PineTime watch running Infinitime. Other devices are certainly possible, but will require someone with that device to code it.
