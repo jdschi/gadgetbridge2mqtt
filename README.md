@@ -1,13 +1,16 @@
 # gadgetbridge2mqtt
 Docker container written in python to publish data stored in a Gadgetbridge database to MQTT. Also shared are a sample docker compose file, and a sample home assistant automation.  The automation uses broadcast intents to use the home assistant companion app to coordinate data transfer.
 
-#Background Documentation:
-##Gadgetbridge Intents: https://gadgetbridge.org/internals/automations/intents/#intents
-##Home Assistant Broadcasting Intents: https://companion.home-assistant.io/docs/notifications/notification-commands/#broadcast-intent
-##Much of the python code for docker container taken from: https://github.com/Progaros/GadgetbridgeMqtt/blob/main/main.py#L292
+##Background Documentation:
+
+Gadgetbridge Intents: https://gadgetbridge.org/internals/automations/intents/#intents
+
+Home Assistant Broadcasting Intents: https://companion.home-assistant.io/docs/notifications/notification-commands/#broadcast-intent
+
+Much of the python code for docker container taken from: https://github.com/Progaros/GadgetbridgeMqtt/blob/main/main.py#L292
 although this code was itself (apparently) taken from an occasionally missing repo: https://git.olli.info/Oliver/GadgetbridgeMqtt.git
 
-#What it does:
+##What it does:
 This docker container reads data from Gadgetbridge.db and publishes it to MQTT. The database is AutoExported from the GadgetBridge app on
 android. The database must be available to the container for reading. It might be moved there as part of some automated backup on your
 phone or using adb. The software can be triggered to publish to MQTT either by publishing a command {publish} on the
@@ -16,11 +19,11 @@ assistant, but presumably works with any other software that uses MQTT. However,
 Mosquitto broker. It has also been tested only with a few devices: Colmi R02 ring, Amazfit Bip S, Moyoung watch (specifically a Colmi V72),
 and a PineTime watch running Infinitime. Other devices are certainly possible, but will require someone with that device to code it.
 
-#Why I am sharing:
+##Why I am sharing:
 This works for me and you might find it helpful. I am not offering support, but may give some help if you are courteous and respectful of
 others.
 
-#How to get it working:
+##How to get it working:
 
 I have tested only on linux. It assume that you have docker compose working on your computer, and an MQTT broker already
 set up and working.
@@ -41,11 +44,11 @@ the database, proper settings are necessary in both Gadgebridge and the Home Ass
 ## What to do in Gadgetbridge app:
     ### Settings (General, not device specific)
         #### Automations
-        ##### Choose an "Export location". If your phone is not rooted, you may have to create a new directory.
-            Take note of it. Mine is something like /storage/emulated/0/Android/Android shared/Gadgetbridge.db
-        ##### Turn on "Auto fetch activity data" for some maximum time to wait for downloading, maybe 3 hours? The
-            automation will coordinate all the data transfers when the phone is available to HA and the server.
-        ##### Set minimum time between fetches to 0 minutes.
+          ##### Choose an "Export location". If your phone is not rooted, you may have to create a new directory.
+              Take note of it. Mine is something like /storage/emulated/0/Android/Android shared/Gadgetbridge.db
+          ##### Turn on "Auto fetch activity data" for some maximum time to wait for downloading, maybe 3 hours? The
+              automation will coordinate all the data transfers when the phone is available to HA and the server.
+          ##### Set minimum time between fetches to 0 minutes.
 
         #### Developer Options (necessary for HA automations to automatically fetch data)
           All the buttons below "Intent API" except "Allow Debug Commands" need to be enabled for the automation to work.
