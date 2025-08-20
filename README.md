@@ -94,7 +94,7 @@ the database, proper settings are necessary in both Gadgebridge and the Home Ass
   Unfortunately, a couple of the steps in the automation use the device, which makes the yaml code incomprehensible, since it uses meaningless ID numbers
   instead of device names. So you need to replace these, or easier, just delete the condition in yaml and add it in the UI. You must also add the MAC
   address for the watch that you want to sync. Replace "ma:ca:dd:re:ss" with something like "AB:CD:12:34:56". You also need to replace
-  "sensor.pixel_6a_last_update_trigger" and "notify.mobile_app_pixel_6a" with your phone's sensor and notification.
+  `sensor.your_phone_last_update_trigger` and `notify.mobile_app_your_phone` with your phone's sensor and notification.
 
 
 ## Docker container:
