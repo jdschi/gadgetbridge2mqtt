@@ -16,6 +16,8 @@ assistant, but presumably works with any other software that uses MQTT. However,
 Mosquitto broker. It has also been tested only with a few devices: Colmi R02 ring, Amazfit Bip S, Moyoung watch (specifically a Colmi V72),
 and a PineTime watch running Infinitime. Other devices are certainly possible, but will require someone with that device to code it.
 
+![Device screen shot](https://github.com/jdschi/gadgetbridge2mqtt/blob/main/GB2MQTT_screen_Shot.png?raw=true)
+
 ## Why I am sharing:
 This works for me and you might find it helpful. I am not offering support, but may give some help if you are courteous and respectful of
 others.
