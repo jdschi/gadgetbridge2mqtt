@@ -771,7 +771,7 @@ class GadgetbridgeMQTTPublisher:
                     await self.publish_sensor_data(sensor_data)
                     self.logger.info("Published data due to DB update")
             except FileNotFoundError:
-                # File missing; clear baseline so we’ll baseline again when it reappears
+                # File missing; clear baseline
                 if self._db_mtime is not None:
                     self.logger.warning(f"DB file missing: {self.db_path}")
                 self._db_mtime = None
