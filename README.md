@@ -1,6 +1,8 @@
 # gadgetbridge2mqtt
 Docker container written in python to publish data stored in a Gadgetbridge database to MQTT. Also shared are a sample docker compose file, and a sample home assistant automation.  The automation uses broadcast intents to use the home assistant companion app to coordinate data transfer.
 
+**Update:** I have added a blueprint for the automation to backup data to the database.
+
 ## Background Documentation:
 
 - Gadgetbridge Intents: https://gadgetbridge.org/internals/automations/intents/#intents
