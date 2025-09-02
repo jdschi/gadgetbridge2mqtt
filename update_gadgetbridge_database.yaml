@@ -1,0 +1,155 @@
+blueprint:
+  name: Update GadgetBridge database at fixed intervals
+  description: Using notify to broadcast intents in Android, this automation instructs 
+    GadgetBridge to fetch data from chosen devices and export the database to the phone. The phone 
+    first needs both GadgetBridge and the Home Assistant companion app installed and working.
+    Your devices (watches, rings, etc.) should already be paired with GadgetBridge. You'll need 
+    the device MAC address(es).
+
+    **In GadgetBridge, Settings** 
+    it is required that you have the location of **AutoExport**, and **automatic export** 
+    switched on. Set minimum fetch time to zero. 
+    Also, each specific device's settings should have 3 options in **Developer Settings** 
+    switched on---**Allow 3rd party apps to change settings**,
+    **Allow GATT interaction through BLE Intent API**, and **Broadcast GATT notification Intents
+    through BLE Intent API**
+
+    **In Home Assistant companion app**
+    (side panel) **Settings** -> **Companion app** -> **Sensors** -> **Manage sensors**.
+    Scroll down to **Last update sensor** and click on it. At the bottom of this menu
+    there is a greyed out **Add new intent** button. Be sure to read the useful text above it. 
+    If you click on the radio button, it will immediately return to grey and create a 
+    new intent below it, with some default text. Click on that new text to edit it, and replace 
+    it with
+    `nodomain.freeyourgadget.gadgetbridge.action.ACTIVITY_SYNC_FINISH`. 
+    While here, create another intent with the text
+    `nodomain.freeyourgadget.gadgetbridge.action.DATABASE_EXPORT_SUCCESS`. 
+    **Restart the companion app.**
+
+  domain: automation
+  input:
+    phone:
+      name: Phone notify running GadgetBridge
+      description: Stupid way, I know.
+        You need to find the notify action for your phone, and type it in exactly here.
+        _e.g.,_ **notify.mobile_app_my_phone**
+      selector:
+        text:
+      default: "notify.mobile_app_my_phone"
+
+    update_trigger:
+      name: Sensor for phone's last update trigger
+      description: Must be the same phone as above, something like `sensor.my_phone_last_update_trigger`
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+      default: sensor.my_phone_last_update_trigger
+
+    update_frequency:
+      name: Update frequency
+      description: Update frequency in minutes (use the pattern shown)
+      default: "/20"
+      selector:
+        text:
+
+    mac_addresses:
+      name: MAC address(es) of the devices connected to GadgetBridge
+      description: >
+        One MAC address per line, surrounded by quotation marks, no indentation, 
+        and each line starts with a dash. MAC be obtained from GadgetBridge 
+        database, GadgetBridge Device discovery, or any bluetooth reader. 
+        Also used in the docker container GadgetBridge2MQTT. Each line in the 
+        list should like, 
+        `- "AA:BB:CC:DD:EE:01"`
+      selector:
+        object:
+
+
+variables:
+  _phone: !input phone
+  _mac_addresses: !input mac_addresses
+
+trigger:
+  - platform: time_pattern
+    id: temp_update
+    minutes: !input update_frequency
+conditions: []
+actions:
+  - variables:
+      invoke_timestamp: "{{ as_timestamp(now()) }}"
+    alias: >-
+      Define variable invoke_timestamp to track how long parts of the code take.
+      Just for debugging.
+  - repeat:
+      for_each: !input mac_addresses
+      sequence:
+        - action: !input phone # notify.mobile_app_pixel_6a_jay_minimal
+          metadata: {}
+          data:
+            message: command_broadcast_intent
+            data:
+              intent_action: nodomain.freeyourgadget.gadgetbridge.BLUETOOTH_CONNECT
+              intent_package_name: nodomain.freeyourgadget.gadgetbridge
+              intent_extras: >-
+                EXTRA_DEVICE_ADDRESS:{{ repeat.item | urlencode
+                }}:String.urlencoded
+    alias: Connect each device to GadgetBridge
+
+  - action: !input phone
+    metadata: {}
+    data:
+      message: command_broadcast_intent
+      data:
+        intent_action: nodomain.freeyourgadget.gadgetbridge.command.ACTIVITY_SYNC
+        intent_package_name: nodomain.freeyourgadget.gadgetbridge
+  - wait_for_trigger:
+      - trigger: state
+        entity_id: !input update_trigger
+        to: nodomain.freeyourgadget.gadgetbridge.action.ACTIVITY_SYNC_FINISH
+    timeout:
+      hours: 0
+      minutes: 1
+      seconds: 0
+      milliseconds: 0
+    alias: Wait up to one minute for confirmation that fetch has completed.
+  - variables:
+      finish_fetch: "{{ as_timestamp(now()) }}"
+  - alias: Tell GB to export database
+    action: !input phone
+    metadata: {}
+    data:
+      message: command_broadcast_intent
+      data:
+        intent_action: nodomain.freeyourgadget.gadgetbridge.command.TRIGGER_EXPORT
+        intent_package_name: nodomain.freeyourgadget.gadgetbridge
+  - wait_for_trigger:
+      - trigger: state
+        entity_id: !input update_trigger
+        to: nodomain.freeyourgadget.gadgetbridge.action.DATABASE_EXPORT_SUCCESS
+    timeout:
+      hours: 0
+      minutes: 1
+      seconds: 0
+      milliseconds: 0
+    alias: >-
+      Wait up to one minute for confirmation that the database has been exported
+      to the phone.
+  - variables:
+      finish_export: "{{ as_timestamp(now()) }}"
+    enabled: true
+  - variables:
+      finish_timestamp: "{{ as_timestamp(now()) }}"
+    enabled: false
+  - alias: Notify the same phone for debugging purposes.
+    action: !input phone
+    metadata: {}
+    data:
+      message: >
+        Fetching time: {{ (finish_fetch - invoke_timestamp) | round(1) }}
+        seconds
+
+        Exporting time: {{ (finish_export - finish_fetch) | round(1) }} seconds
+      title: Gadgetbridge sync and export notification
+    enabled: true
+mode: single
